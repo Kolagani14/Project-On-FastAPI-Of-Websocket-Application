@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Group Chat</title>
+</head>
+<body>
+    <h2>Group Chat</h2>
+    <input id="username" placeholder="Enter your name">
+    <button onclick="joinChat()">Join</button>
+    <br><br>
+    <input id="msg" placeholder="Enter a message...">
+    <button onclick="sendMessage()">Send</button>
+    <div id="chatbox" style="height:300px; overflow:auto; border:1px solid #ccc; padding:5px;"></div>
+
+    <script>
+        let socket = null;
+
+        function joinChat() {
+            const username = document.getElementById("username").value.trim();
+            if(!username) {
+                alert("Please enter a username!");
+                return;
+            }
+
+            // Open WebSocket only after joining
+            socket = new WebSocket(`ws://${location.host}/ws`);
+
+            socket.onopen = function() {
+                // Send username to server
+                socket.send(username);
+            };
+
+            socket.onmessage = function(event) {
+                const p = document.createElement("p");
+                p.innerText = event.data;
+                document.getElementById("chatbox").appendChild(p);
+                document.getElementById("chatbox").scrollTop = document.getElementById("chatbox").scrollHeight;
+            };
+        }
+
+        function sendMessage() {
+            const text = document.getElementById("msg").value.trim();
+            if(socket && text) {
+                socket.send(text);
+                document.getElementById("msg").value = "";
+            }
+        }
+
+        // Optional: allow Enter key to send message
+        document.getElementById("msg").addEventListener("keydown", function(e) {
+            if(e.key === "Enter") sendMessage();
+        });
+    </script>
+</body>
+</html>
